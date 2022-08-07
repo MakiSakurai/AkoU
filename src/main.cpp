@@ -1,21 +1,56 @@
+// NOTE: This is a simple example that only reads the INTA or INTB pin
+//       state. No actual interrupts are used on the host microcontroller.
+//       MCP23XXX supports the following interrupt modes:
+//           * CHANGE - interrupt occurs if pin changes to opposite state
+//           * LOW - interrupt occurs while pin state is LOW
+//           * HIGH - interrupt occurs while pin state is HIGH
+
+// ok to include only the one needed
+// both included here to make things simple for example
 #include <Adafruit_MCP23X17.h>
-#include <Arduino.h>
+
+#define BUTTON_PIN 1  // MCP23XXX pin used for interrupt
+
+#define INT_PIN 14  // microcontroller pin attached to INTA/B
+
+// uncomment appropriate line
 Adafruit_MCP23X17 mcp;
+
 void setup() {
-  mcp.begin_I2C(0x27);
-  mcp.pinMode(8, INPUT);
-  mcp.pinMode(0, OUTPUT);
-  // put your setup code here, to run once:
-  pinMode(LED_BUILTIN, OUTPUT);  // pinmodeはGPIOのピンを認識させるモード
+  Serial.begin(9600);
+  // while (!Serial);
+  Serial.println("MCP23xxx Interrupt Test!");
+
+  // uncomment appropriate mcp.begin
+  if (!mcp.begin_I2C(0x27)) {
+    // if (!mcp.begin_SPI(CS_PIN)) {
+    Serial.println("Error.");
+    while (1)
+      ;
+  }
+
+  // configure MCU pin that will read INTA/B state
+  pinMode(INT_PIN, INPUT);
+
+  // OPTIONAL - call this to override defaults
+  // mirror INTA/B so only one wire required
+  // active drive so INTA/B will not be floating
+  // INTA/B will be signaled with a LOW
+  mcp.setupInterrupts(true, false, LOW);
+
+  // configure button pin for input with pull up
+  mcp.pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // enable interrupt on button_pin
+  mcp.setupInterruptPin(BUTTON_PIN, LOW);
+
+  Serial.println("Looping...");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if (mcp.digitalRead(8) == LOW) {
-    digitalWrite(LED_BUILTIN, LOW);
-    mcp.digitalWrite(0, HIGH);
-  } else {
-    digitalWrite(LED_BUILTIN, HIGH);
-    mcp.digitalWrite(0, LOW);
+  if (!digitalRead(INT_PIN)) {
+    Serial.print("Interrupt detected on pin: ");
+    Serial.println(mcp.getLastInterruptPin());
+    delay(250);  // debounce
   }
 }

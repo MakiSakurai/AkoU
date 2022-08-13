@@ -2,7 +2,7 @@
 #include <Adafruit_NeoPixel.h>  //ライブラリの読み込み
 #include <Arduino.h>
 #define MAX_VAL 64  // 最大輝度の設定をする(暗い←0 ～ 255→明い)
-#define INT_PIN A6
+#define INT_PIN 14
 
 Adafruit_MCP23X17 mcp;
 // Adafruit_NeoPixel(LEDの使用個数、Arduinoのピン番号、色の並び+データの転送速度)
@@ -14,6 +14,7 @@ void IRAM_ATTR itr_1() {
   state = !state;
   digitalWrite(LED_BUILTIN,state);
   sensor[0]=true;
+  Serial.println("ITTR!");
 }
 
 void setup() {
@@ -29,7 +30,7 @@ void setup() {
     Serial.println("I2C connection Error.");
     while (1);
   }
-
+  mcp.readGPIOAB();
   mcp.setupInterrupts(true, false, LOW);
 
   mcp.pinMode(0, INPUT);
@@ -49,5 +50,6 @@ void loop() {
     Serial.println(mcp.getLastInterruptPin());
     sensor[0]=false;
   }
+  mcp.readGPIOAB();
   
 }

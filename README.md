@@ -1,3 +1,3 @@
 ![](https://github.com/MakiSakurai/AkoU/workflows/Arduino/badge.svg)
 
-# AkoU
+# AkoU 雨粒で光る傘
